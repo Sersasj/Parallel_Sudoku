@@ -63,10 +63,10 @@ for line in range(tam**2):
         connections = np.concatenate((aux[0:line,column], aux[line+1:tam**2,column], # Coluna
                                       aux[line,0:column], aux[line,column+1:tam**2], # Linha
                                       box),# box 
-                                     axis=None)    
+                                     axis=None)
         
         connections = np.unique(connections)
-        graph.nodes.append(Node(i, aux[line][column], connections))
+        graph.nodes.append(Node(i, puzzle.board[line][column], connections))
                                                                     
                                                                     
         i += 1
