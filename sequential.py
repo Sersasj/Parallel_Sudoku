@@ -24,9 +24,6 @@ class Node:
     self.connections = connections
 
 
-
-
-
 tam = 3
 puzzle = Sudoku(tam).difficulty(0.9)
 puzzle.show()
@@ -69,115 +66,122 @@ for line in range(tam**2):
     index += 1
 
 
-
 def contraint(graph):
   first = 0
   print("Entrou")
-  while(check_constraint(graph) or first == 0):
-      first += 1
-      # Contraint 1 - se um node tem só 1 possibilidade tira ela de todos as conexões
-      for node in range(tam**4):
-        if len(graph.nodes[node].possible_data) == 1:
-          for connection in graph.nodes[node].connections:
-            graph.nodes[connection].possible_data = np.delete(
-              graph.nodes[connection].possible_data,
-              np.where(graph.nodes[connection].possible_data ==
-                          graph.nodes[node].possible_data[0]))
-    
-      # Constraint 2 -  se um node só tem 1 possibilidade torna ela o dado
-      for node in range(tam**4):
-        if len(graph.nodes[node].possible_data
-               ) == 1 and graph.nodes[node].data == None:
-          graph.nodes[node].data = graph.nodes[node].possible_data[0]
-          for connection in graph.nodes[node].connections:
-            graph.nodes[connection].possible_data = np.delete(
-              graph.nodes[connection].possible_data,
-              np.where(graph.nodes[connection].possible_data ==
-                          graph.nodes[node].possible_data[0]))    
+  while (check_constraint(graph) or first == 0):
+    first += 1
+    # Contraint 1 - se um node tem só 1 possibilidade tira ela de todos as conexões
+    for node in range(tam**4):
+      if len(graph.nodes[node].possible_data) == 1:
+        for connection in graph.nodes[node].connections:
+          graph.nodes[connection].possible_data = np.delete(
+            graph.nodes[connection].possible_data,
+            np.where(graph.nodes[connection].possible_data ==
+                     graph.nodes[node].possible_data[0]))
+
+    # Constraint 2 -  se um node só tem 1 possibilidade torna ela o dado
+    for node in range(tam**4):
+      if len(graph.nodes[node].possible_data
+             ) == 1 and graph.nodes[node].data == None:
+        graph.nodes[node].data = graph.nodes[node].possible_data[0]
+        for connection in graph.nodes[node].connections:
+          graph.nodes[connection].possible_data = np.delete(
+            graph.nodes[connection].possible_data,
+            np.where(graph.nodes[connection].possible_data ==
+                     graph.nodes[node].possible_data[0]))
+
 
 finish = 0
 
+
 def check_constraint(graph):
-    for node in range(tam**4):
-        if len(graph.nodes[node].possible_data) == 1 and graph.nodes[node].data == None:
-            return True    
-    return False
+  for node in range(tam**4):
+    if len(graph.nodes[node].possible_data
+           ) == 1 and graph.nodes[node].data == None:
+      return True
+  return False
 
 
 graph_backtrack = []
 
+
 def random(graph):
-    min_id = None
+  min_id = None
 
-    for node in range(tam**4):
-        if graph.nodes[node].data == None:
-            if min_id == None:
-                min_id = node
-            elif(len(graph.nodes[node].possible_data) < len(graph.nodes[min_id].possible_data)):
-                min_id = node
-    if  min_id == None or len(graph.nodes[min_id].possible_data) == 0 :
-        return
-     
-    random_index = randint(0,len(graph.nodes[min_id].possible_data)-1)
-    graph.nodes[min_id].data = graph.nodes[min_id].possible_data[random_index]
-    graph_backtrack.append(deepcopy(graph))        
+  for node in range(tam**4):
+    if graph.nodes[node].data == None:
+      if min_id == None:
+        min_id = node
+      elif (len(graph.nodes[node].possible_data) < len(
+          graph.nodes[min_id].possible_data)):
+        min_id = node
+  if min_id == None or len(graph.nodes[min_id].possible_data) == 0:
+    return
 
-    # Remove dos conectados
-    for connection in graph.nodes[min_id].connections:
-      graph.nodes[connection].possible_data = np.delete(
-        graph.nodes[connection].possible_data,
-        np.where(graph.nodes[connection].possible_data ==
-                    graph.nodes[min_id].possible_data[random_index]))   
-         
+  random_index = randint(0, len(graph.nodes[min_id].possible_data) - 1)
+  graph.nodes[min_id].data = graph.nodes[min_id].possible_data[random_index]
+  graph_backtrack.append(deepcopy(graph))
 
-        
-        
+  # Remove dos conectados
+  for connection in graph.nodes[min_id].connections:
+    graph.nodes[connection].possible_data = np.delete(
+      graph.nodes[connection].possible_data,
+      np.where(graph.nodes[connection].possible_data ==
+               graph.nodes[min_id].possible_data[random_index]))
+
+
 #Transfere conteúdo do grafo para o puzzle
 def print_puzzle(graph):
-    count = 0
-    for line in range(tam**2):
-      for column in range(tam**2):
-        puzzle.board[line][column] = graph.nodes[count].data
-        count += 1
-    puzzle.show()
-def verify_error(graph):
-    count = 0
-    for node in range(tam**4):
-        #print(node, graph.nodes[node].index, graph.nodes[node].possible_data)
+  count = 0
+  for line in range(tam**2):
+    for column in range(tam**2):
+      puzzle.board[line][column] = graph.nodes[count].data
+      count += 1
+  puzzle.show()
 
-        if len(graph.nodes[node].possible_data) == 0:
-            #print(graph.nodes[node].index, graph.nodes[node].possible_data[:])
-            count += 1
-    #print("Count = ", count)        
-    if count > 0:
-        return True  
-    return False     
+
+def verify_error(graph):
+  count = 0
+  for node in range(tam**4):
+    #print(node, graph.nodes[node].index, graph.nodes[node].possible_data)
+
+    if len(graph.nodes[node].possible_data) == 0:
+      #print(graph.nodes[node].index, graph.nodes[node].possible_data[:])
+      count += 1
+  #print("Count = ", count)
+  if count > 0:
+    return True
+  return False
+
+
 def verify_finish(graph):
-    count = 0
-    for node in range(tam**4):
-        if graph.nodes[node].data != None:
-            count += 1
-    if count == tam**4 and verify_error(graph) == False:
-        return True    
-while(True):
+  count = 0
+  for node in range(tam**4):
+    if graph.nodes[node].data != None:
+      count += 1
+  if count == tam**4 and verify_error(graph) == False:
+    return True
+
+
+while (True):
   print(len(graph_backtrack))
   contraint(graph)
   print("CT")
   print_puzzle(graph)
   print("Random")
   random(graph)
-  print_puzzle(graph) 
+  print_puzzle(graph)
 
   if verify_error(graph):
-      print("Back")
-      graph = deepcopy(graph_backtrack[-1])
-      del graph_backtrack[-1]
+    print("Back")
+    graph = deepcopy(graph_backtrack[-1])
+    del graph_backtrack[-1]
 
   if verify_finish(graph):
-      break
-  
+    break
+
 print_puzzle(graph)
-  
+
 print("Solucao")
 solution.show()
-# 
