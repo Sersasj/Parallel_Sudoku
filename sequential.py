@@ -1,5 +1,6 @@
 # pip3 install py-sudoku
 import numpy as np
+from copy import deepcopy
 # Implementação do grafo
 class Graph:
     def __init__(self, nodes, Adj, edges, total_nodes):
@@ -72,10 +73,39 @@ for line in range(tam**2):
             graph.nodes.append(Node(i, puzzle.board[line][column], [puzzle.board[line][column]], connections))   
                                                  
         i += 1
-       
-# Contraint 1 - se um node tem só 1 possibilidade tira de todos as conexões
-for node in range(tam**4):
-    if len(graph.nodes[node].possible_data) == 1:
-        for connection in graph.nodes[node].connections:
-            graph.nodes[connection].possible_data = np.delete(graph.nodes[connection].possible_data, np.where(graph.nodes[connection].possible_data == graph.nodes[node].possible_data))
-          
+def contraint(graph):       
+    # Contraint 1 - se um node tem só 1 possibilidade tira ela de todos as conexões
+    for node in range(tam**4):
+        if len(graph.nodes[node].possible_data) == 1:
+            for connection in graph.nodes[node].connections:
+                print("Antes", graph.nodes[connection].possible_data)
+                graph.nodes[connection].possible_data = np.delete(graph.nodes[connection].possible_data, np.where(graph.nodes[connection].possible_data == graph.nodes[node].possible_data))
+                print("Depois", graph.nodes[connection].possible_data)
+
+    # Constraint 2 -  se um node só tem 1 possibilidade torna ela o dado
+    for node in range(tam**4):
+        if len(graph.nodes[node].possible_data) == 1 and graph.nodes[node].data == None:
+            print("entrouu",graph.nodes[node].index , graph.nodes[node].possible_data[0])
+            graph.nodes[node].data = graph.nodes[node].possible_data[0]
+            
+finish = 0             
+def search(graph):
+    #print(len(graph.nodes[2].possible_data))
+    
+    count = 0
+    for i in range(tam**4):
+        if len(graph.nodes[i].possible_data) == 1:
+            count += 1 
+    if count ==  tam**4:
+        finish = -1
+for i in range(10):
+    contraint(graph)        
+    search(graph)    
+
+# Transfere conteúdo do grafo para o puzzle
+count = 0
+for line in range(tam**2):
+    for column in range(tam**2):  
+        puzzle.board[line][column] =  graph.nodes[count].data
+        count +=1 
+puzzle.show()
