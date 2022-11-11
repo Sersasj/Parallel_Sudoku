@@ -10,9 +10,10 @@ class Graph:
 
 # Node = Vertice
 class Node:
-    def __init__(self, index, data, connections):
+    def __init__(self, index, data, possible_data, connections):
         self.index = index
         self.data = data
+        self.possible_data = possible_data
         self.connections = connections
     
     def add_neighbour(self, neighbour, weight):
@@ -41,7 +42,7 @@ class Node:
          str([x.data for x in self.connections])
 
 from sudoku import Sudoku
-tam = 3
+tam = 2
 puzzle = Sudoku(tam).difficulty(0.5)
 puzzle.show()
 solution = puzzle.solve()
@@ -50,10 +51,9 @@ solution = puzzle.solve()
 graph = Graph([], [], [], tam**4)
 for i in range(graph.total_nodes):
     graph.Adj.append([])
-#two vertices are connected by an edge if the cells that they correspond to are in the same column, row or 3x3 box.
 i = 0    
 aux = np.arange(0,tam**4).reshape((tam**2, tam**2))
-
+# Liga todas as possibilidades de vértice
 for line in range(tam**2):
     for column in range(tam**2):  
         if line % tam == 0 and column % tam == 0:
@@ -63,15 +63,19 @@ for line in range(tam**2):
         connections = np.concatenate((aux[0:line,column], aux[line+1:tam**2,column], # Coluna
                                       aux[line,0:column], aux[line,column+1:tam**2], # Linha
                                       box),# box 
-                                     axis=None)
-        
+                                     axis=None)        
         connections = np.unique(connections)
-        graph.nodes.append(Node(i, puzzle.board[line][column], connections))
-                                                                    
-                                                                    
+        
+        if puzzle.board[line][column] ==  None:
+            graph.nodes.append(Node(i, puzzle.board[line][column], np.arange(1,tam**2 + 1, 1), connections))                                                                    
+        else:
+            graph.nodes.append(Node(i, puzzle.board[line][column], [puzzle.board[line][column]], connections))   
+                                                 
         i += 1
-
-for node in graph.nodes:
-    
-    print(node.getID())
-
+       
+# Contraint 1 - se um node tem só 1 possibilidade tira de todos as conexões
+for node in range(tam**4):
+    if len(graph.nodes[node].possible_data) == 1:
+        for connection in graph.nodes[node].connections:
+            graph.nodes[connection].possible_data = np.delete(graph.nodes[connection].possible_data, np.where(graph.nodes[connection].possible_data == graph.nodes[node].possible_data))
+          

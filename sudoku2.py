@@ -1,5 +1,5 @@
 ## Solve Every Sudoku Puzzle
-
+from threading import Thread
 ## See http://norvig.com/sudoku.html
 
 ## Throughout this program we have:
@@ -185,6 +185,7 @@ if __name__ == '__main__':
     puzzle = random_puzzle()
     print(puzzle)
     print(display(solve(puzzle)))
+    
     #print(random_puzzle())
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
