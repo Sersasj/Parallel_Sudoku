@@ -25,7 +25,7 @@ class Node:
 
 
 tam = 3
-puzzle = Sudoku(tam).difficulty(0.9)
+puzzle = Sudoku(tam).difficulty(0.6)
 puzzle.show()
 solution = puzzle.solve()
 # Cria o grafo
@@ -163,8 +163,8 @@ def verify_finish(graph):
   if count == tam**4 and verify_error(graph) == False:
     return True
 
-
-while (True):
+for i in range (1):
+#while (True):
   print(len(graph_backtrack))
   contraint(graph)
   print("CT")
