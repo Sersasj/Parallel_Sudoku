@@ -1,4 +1,6 @@
 # pip3 install py-sudoku
+from mpi4py import MPI
+
 from sudoku import Sudoku
 import sys
 import numpy as np
@@ -26,15 +28,15 @@ class Node:
         self.connections = connections
 
 
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
 tam = 3
 puzzle = Sudoku(tam).difficulty(0.94)
-#6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....
-#string = "52...6.........7.13...........4..8..6......5...........418.........3..2...87....."
-
+puzzle.show()
 string = "6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1...."
 # Converte string pra puzzle
 count = 0
-
 for line in range(tam**2):
   for column in range(tam**2):
       if string[count] == ".":          
@@ -118,7 +120,7 @@ def check_constraint(graph):
 graph_backtrack = []
 
 
-def random(graph):
+def random(graph, rank):
     min_id = None
 
     for node in range(tam**4):
@@ -135,14 +137,9 @@ def random(graph):
     aux_possible_data = deepcopy(graph.nodes[min_id].possible_data)
     graph.nodes[min_id].possible_data = np.delete(graph.nodes[min_id].possible_data, np.where(
         graph.nodes[min_id].possible_data == graph.nodes[min_id].possible_data[random_index]))
+    
     graph_backtrack.append(deepcopy(graph))
-    for thread in threads:
-        if not thread.is_alive():
-            try:
-                thread.start()
-            except:
-                print()
-            break
+
     graph.nodes[min_id].possible_data = aux_possible_data
     graph.nodes[min_id].data = graph.nodes[min_id].possible_data[random_index]
     # Remove dos conectados
@@ -186,7 +183,7 @@ def verify_finish(graph):
         return True
 
 stop_t = False
-def solve(graph_backtrack, i):
+def solve(graph_backtrack, rank):
     global stop_t
     if (len(graph_backtrack) > 0):
         graph = graph_backtrack[0]
@@ -197,7 +194,9 @@ def solve(graph_backtrack, i):
         if (stop_t):
             return False
         contraint(graph)
-        random(graph)
+        random(graph, rank)
+        comm.bcast(graph_backtrack, root=0)
+        print(rank, print_puzzle(graph))
         if verify_error(graph):
             if (len(graph_backtrack) > 0):
                 graph = graph_backtrack[0]
@@ -206,20 +205,47 @@ def solve(graph_backtrack, i):
         if verify_finish(graph):
             stop_t = True
             print(print_puzzle(graph))
-            print("Resolvido pela thread ", i)
+            print("Solução pelo rank", rank)
             return(graph)
 
+
+def solve2(graph_backtrack, rank):
+    print("222")
+    global stop_t
+    graph_backtrack = []
+    while (True):
+        if (len(graph_backtrack) == 0):
+            graph_backtrack = comm.bcast(graph_backtrack, root=0)
+            print("vazio")
+            continue
+        else:
+            graph = graph_backtrack[0]
+            del graph_backtrack[0]
+        contraint(graph)
+        graph_backtrack = comm.bcast(graph_backtrack, root=0)
+        random(graph, rank)
+        print(rank, print_puzzle(graph))
+        if verify_error(graph):
+            if (len(graph_backtrack) > 0):
+                graph = graph_backtrack[0]
+                del graph_backtrack[0]
+
+        if verify_finish(graph):
+            stop_t = True
+            print(print_puzzle(graph))
+            print("Solução pelo rank", rank)
+            return(graph)
+def teste(i):
+    for a in range(10):
+        print(i)
+        time.sleep(.3)
+
+
 if __name__ == '__main__':
-   print_puzzle(graph)
-   start_time = time.time()
-   #print_puzzle(solve(graph))
-   graph_backtrack.append(graph)
-   t1 = threading.Thread(target=solve, args=(graph_backtrack, 1 ))
-   t2 = threading.Thread(target=solve, args=(graph_backtrack, 2 ))
-   threads.append(t1)
-   threads.append(t2)
-   # starting thread 1
-   t1.start()
-   t1.join()
-   print("--- %s seconds ---" % (time.time() - start_time))
-print("Solucao")
+    
+    graph_backtrack.append(graph)
+    if rank == 0:    
+        solve(graph_backtrack, rank)
+    else:
+        solve2(graph_backtrack, rank)
+    print("Solucao")

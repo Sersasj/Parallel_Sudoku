@@ -28,6 +28,8 @@ tam = 3
 puzzle = Sudoku(tam).difficulty(0.93)
 puzzle.show()
 string = "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......"
+#string = "6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1...."
+
 #Converte string pra puzzle
 count = 0
 for line in range(tam**2):
